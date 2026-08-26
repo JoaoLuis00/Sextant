@@ -3,8 +3,12 @@
 Current layout (Phases 1–4). `app/` is planned but not yet created — it lands
 with Phases 5–7.
 
+The crate is named `sextant` (the app's name); module and file names stay
+domain-oriented, so `domain/portfolio.rs` and the `Portfolio` type are
+unchanged.
+
 ```
-portfolio/
+sextant/
 ├── Cargo.toml
 ├── tests/
 │   └── portfolio_lifecycle.rs  # integration tests — public API only, via lib.rs

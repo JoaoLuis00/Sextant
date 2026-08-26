@@ -1,6 +1,8 @@
-# Investment Intelligence Platform
+# Sextant
 
 A personal investment platform developed to learn Rust through a real-world project.
+
+what this does: transaction history plus market data in, a portfolio snapshot out.
 
 Goals
 
@@ -13,13 +15,12 @@ Current Stage
 
 Phases 1–4 complete — domain model, traits, engine, and tests. Phase 5 (storage) is next.
 
-The core is a one-way flow: transaction history plus market data go into a
-stateless engine, and a portfolio snapshot comes out. Only assets and
-transactions are ever persisted; positions and snapshots are always
-regenerated, never stored.
+The engine is stateless and pure: only assets and transactions are ever
+persisted, while positions and snapshots are regenerated on demand and never
+stored. That is what keeps every figure reproducible from history alone.
 
 ```
-cargo test     # 64 tests: unit tests inline, integration tests in tests/
+cargo test     # 65 tests: unit tests inline, integration tests in tests/
 cargo run      # demo binary until Phase 7 replaces it with a real CLI
 ```
 

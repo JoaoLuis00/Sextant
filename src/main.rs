@@ -9,12 +9,12 @@ use std::collections::HashMap;
 use chrono::{NaiveDate, Utc};
 use rust_decimal::dec;
 
-use portfolio::{
+use sextant::{
     generate_snapshot, Asset, AssetId, AssetType, Currency, MarketData, Portfolio, PortfolioId,
     PortfolioSnapshot, Ticker, Transaction, TransactionType,
 };
 
-fn main() -> portfolio::Result<()> {
+fn main() -> sextant::Result<()> {
     let apple_id = AssetId::new();
     let apple = Asset::new(
         apple_id,
@@ -71,7 +71,7 @@ fn transaction(
     month: u32,
     day: u32,
     kind: TransactionType,
-) -> portfolio::Result<Transaction> {
+) -> sextant::Result<Transaction> {
     let date = NaiveDate::from_ymd_opt(year, month, day).expect("hardcoded demo date is valid");
     Ok(Transaction::new(asset_id, date, kind, None)?)
 }

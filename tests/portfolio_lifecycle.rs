@@ -1,14 +1,14 @@
 //! Integration tests — public API only.
 //!
 //! These reach the crate the same way an external consumer would (`use
-//! portfolio::...`), so anything these tests touch is, by definition, part of
+//! sextant::...`), so anything these tests touch is, by definition, part of
 //! the public surface. If something needed here is private, that's a signal
 //! about the API rather than a reason to reach inside.
 
 use std::collections::HashMap;
 
 use chrono::{NaiveDate, Utc};
-use portfolio::{
+use sextant::{
     generate_snapshot, AssetId, EngineError, InMemoryTransactionRepository, MarketData,
     MarketDataProvider, MockProvider, Portfolio, PortfolioId, Repository, Transaction,
     TransactionError, TransactionType,
@@ -206,7 +206,7 @@ fn a_provider_can_supply_the_prices_the_engine_needs() {
             let price = provider.price(&id)?;
             Ok((id, MarketData::new(id, price, Utc::now())))
         })
-        .collect::<Result<_, portfolio::MarketDataError>>()
+        .collect::<Result<_, sextant::MarketDataError>>()
         .unwrap();
 
     let snapshot = generate_snapshot(portfolio.transactions(), &market).unwrap();

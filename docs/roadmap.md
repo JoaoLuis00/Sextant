@@ -1,4 +1,4 @@
-# Portfolio Intelligence Platform — Rust Learning Roadmap
+# Sextant — Rust Learning Roadmap
 
 A phased plan mapping Rust language concepts to milestones in the portfolio project.
 

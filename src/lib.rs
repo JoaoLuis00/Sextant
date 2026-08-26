@@ -1,6 +1,10 @@
-//! # Investment Intelligence Platform
+//! # Sextant
 //!
-//! A personal portfolio engine. The architecture is a one-way flow:
+//! A personal investment platform. A sextant fixes your position by taking a
+//! reading at a moment in time — which is exactly what this does: [`Position`]
+//! and [`PortfolioSnapshot`] are the two types everything else serves.
+//!
+//! The architecture is a one-way flow:
 //!
 //! ```text
 //! Transaction history ──┐
@@ -27,7 +31,7 @@ pub mod ids;
 pub mod market_data;
 
 // Flat re-exports: the public API callers should reach for. Deep paths like
-// `portfolio::domain::position::PositionValuation` stay available, but nothing
+// `sextant::domain::position::PositionValuation` stay available, but nothing
 // outside the crate should need them.
 pub use domain::asset::{Asset, AssetType, Currency, Ticker};
 pub use domain::portfolio::Portfolio;
@@ -41,5 +45,5 @@ pub use ids::{AssetId, PortfolioId, TransactionId};
 pub use market_data::{MarketData, MarketDataProvider, MockProvider};
 
 /// Crate-wide result alias, so signatures at the app boundary read as
-/// `fn run() -> portfolio::Result<()>`.
+/// `fn run() -> sextant::Result<()>`.
 pub type Result<T> = std::result::Result<T, Error>;
