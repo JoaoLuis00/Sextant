@@ -82,10 +82,10 @@ A phased plan mapping Rust language concepts to milestones in the portfolio proj
 
 **Goal:** implement the trait from Phase 2 against a real external API.
 
-- [ ] Implement `YahooFinanceProvider: MarketDataProvider` using `reqwest` + `serde`
-- [ ] Deserialize API responses into domain types (or a DTO layer that converts into domain types)
-- [ ] Handle API failures gracefully (`Result<_, MarketDataError>`, retries/timeouts later)
-- [ ] Feature-gate `market_data` in `Cargo.toml`
+- [x] Implement `YahooFinanceProvider: MarketDataProvider` using `reqwest` + `serde`
+- [x] Deserialize API responses into domain types (or a DTO layer that converts into domain types)
+- [x] Handle API failures gracefully (`Result<_, MarketDataError>`, retries/timeouts later)
+- [x] Feature-gate `market_data` in `Cargo.toml`
 
 ---
 
@@ -142,6 +142,24 @@ judgement call worth confirming rather than inheriting silently.
   `rusqlite::Error`, which isn't `Clone`/`PartialEq`, so it can't be added to
   an enum that derives those. Left standalone for now — revisit when Phase 7
   wires storage into the CLI and needs one error type at the boundary.
+- **`YahooFinanceProvider` needs a ticker map, not just `AssetId`s.**
+  `MarketDataProvider::price` takes only an `AssetId`, but Yahoo's API only
+  knows ticker symbols. Rather than changing the trait, the provider carries
+  its own `HashMap<AssetId, Ticker>`, set via `.with_ticker(...)` (mirrors
+  `MockProvider::with_price`). An asset with no entry fails with the same
+  `MarketDataError::NotFound` a missing quote would produce — accurate either
+  way, and one fewer error variant to reason about.
+- **Yahoo errors stringify into `MarketDataError::FetchFailed`.** Unlike
+  `StorageError`, `MarketDataError` is a fixed associated type on the trait
+  (not per-implementor), and it already derives `Clone`/`PartialEq`/`Eq` for
+  the rest of the crate — so `reqwest::Error`/`serde_json::Error` get
+  `.to_string()`'d into a `reason: String` field immediately rather than
+  wrapped with `#[from]`.
+- **Yahoo's JSON carries price as `f64`.** Converted to `Decimal` once, right
+  at deserialization, and never handled as a float again — the one place
+  "never `f64` for money" bends, because the wire format isn't ours to
+  choose. `Decimal::try_from(f64)` was checked against `rust_decimal`'s own
+  doctest (`0.1_f64` → `"0.1"`) before relying on it for real prices.
 
 ---
 

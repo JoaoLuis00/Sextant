@@ -16,9 +16,9 @@ which language concepts it's meant to exercise.
 ## Commands
 
 ```
-cargo test                    # unit tests inline, integration tests in tests/
-cargo test --features storage # also exercises the SQLite repository
-cargo run                     # demo binary until Phase 7 replaces it with a real CLI
+cargo test                                # unit tests inline, integration tests in tests/
+cargo test --features storage,market_data # also exercises SQLite and Yahoo Finance parsing
+cargo run                                 # demo binary until Phase 7 replaces it with a real CLI
 ```
 
 ## Conventions

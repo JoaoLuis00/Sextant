@@ -46,6 +46,8 @@ pub use errors::{AssetError, DomainError, EngineError, Error, MarketDataError, T
 pub use ids::{AssetId, PortfolioId, TransactionId};
 pub use market_data::{MarketData, MarketDataProvider, MockProvider};
 
+#[cfg(feature = "market_data")]
+pub use app::market_data::YahooFinanceProvider;
 #[cfg(feature = "storage")]
 pub use app::storage::{SqliteTransactionRepository, StorageError};
 

@@ -15,6 +15,8 @@ use thiserror::Error;
 pub enum MarketDataError {
     #[error("no market data available for asset {0}")]
     NotFound(AssetId),
+    #[error("failed to fetch market data for asset {asset_id}: {reason}")]
+    FetchFailed { asset_id: AssetId, reason: String },
 }
 
 /// One price point for one asset. The Engine needs prices for *every* held

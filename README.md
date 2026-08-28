@@ -13,17 +13,18 @@ Goals
 
 Current Stage
 
-Phases 1–5 complete — domain model, traits, engine, tests, and SQLite storage
-(behind the `storage` feature). Phase 6 (market data) is next.
+Phases 1–6 complete — domain model, traits, engine, tests, SQLite storage
+(behind the `storage` feature), and live Yahoo Finance prices (behind the
+`market_data` feature). Phase 7 (CLI) is next.
 
 The engine is stateless and pure: only assets and transactions are ever
 persisted, while positions and snapshots are regenerated on demand and never
 stored. That is what keeps every figure reproducible from history alone.
 
 ```
-cargo test                    # unit tests inline, integration tests in tests/
-cargo test --features storage # also exercises the SQLite repository
-cargo run                     # demo binary until Phase 7 replaces it with a real CLI
+cargo test                                  # unit tests inline, integration tests in tests/
+cargo test --features storage,market_data   # also exercises SQLite and Yahoo Finance parsing
+cargo run                                   # demo binary until Phase 7 replaces it with a real CLI
 ```
 
 See [`docs/roadmap.md`](docs/roadmap.md) for phased progress and open decisions,
