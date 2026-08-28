@@ -1,7 +1,7 @@
 # Crate structure
 
-Current layout (Phases 1–4). `app/` is planned but not yet created — it lands
-with Phases 5–7.
+Current layout (Phases 1–5). `app/cli.rs` and `app/market_data.rs` are
+planned but not yet created — they land with Phases 6–7.
 
 The crate is named `sextant` (the app's name); module and file names stay
 domain-oriented, so `domain/portfolio.rs` and the `Portfolio` type are
@@ -34,11 +34,11 @@ sextant/
     │
     ├── market_data.rs          # MarketData, MarketDataProvider port, MockProvider
     │
-    ├── app.rs                  # PLANNED — pub mod cli, storage, market_data;
-    ├── app/                    # PLANNED
-    │   ├── cli.rs              # Phase 7
-    │   ├── storage.rs          # Phase 5 — implements Repository<T> against SQLite
-    │   └── market_data.rs      # Phase 6 — YahooFinanceProvider
+    ├── app.rs                  # pub mod storage (feature-gated); cli, market_data land later
+    ├── app/
+    │   ├── storage.rs          # SqliteTransactionRepository, behind the `storage` feature
+    │   ├── cli.rs              # PLANNED — Phase 7
+    │   └── market_data.rs      # PLANNED — Phase 6, YahooFinanceProvider
     │
     ├── ids.rs                  # crate-global — used by domain, engine, and app alike
     └── errors.rs               # top-level Error, composes Domain/Engine/MarketData via #[from]

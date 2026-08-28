@@ -71,10 +71,10 @@ A phased plan mapping Rust language concepts to milestones in the portfolio proj
 
 **Goal:** persist data without dragging in async before you're ready.
 
-- [ ] Start with `rusqlite` (sync) rather than `sqlx` (async) — one less concept to fight
-- [ ] Implement the `Repository<T>` trait from Phase 2 against SQLite
-- [ ] Keep `domain`/`engine` completely unaware of SQL — only `storage` module touches `rusqlite`
-- [ ] Feature-gate `storage` in `Cargo.toml` (`dep:rusqlite` as optional dependency)
+- [x] Start with `rusqlite` (sync) rather than `sqlx` (async) — one less concept to fight
+- [x] Implement the `Repository<T>` trait from Phase 2 against SQLite
+- [x] Keep `domain`/`engine` completely unaware of SQL — only `storage` module touches `rusqlite`
+- [x] Feature-gate `storage` in `Cargo.toml` (`dep:rusqlite` as optional dependency)
 
 ---
 
@@ -130,6 +130,18 @@ judgement call worth confirming rather than inheriting silently.
   but snapshot totals still carry no currency tag — mixing denominations would
   silently sum incomparable numbers. Documented on `PortfolioSnapshot`; needs
   an FX layer before it can be relaxed.
+- **`Transaction::from_stored` bypasses id minting.** `Transaction::new` always
+  mints a fresh `TransactionId`, but a repository loading a row needs to
+  restore the id that's already on disk. Added a `pub(crate)`-only
+  constructor rather than a public one, so only code inside the crate
+  (storage) can set an arbitrary id — external callers still go through
+  `new()`. `TransactionType` doesn't need the same treatment since `buy()`/
+  `sell()` re-validate on load anyway.
+- **`StorageError` doesn't widen into the top-level `Error`.** Every other
+  layer's error composes into `Error` via `#[from]`; `StorageError` wraps
+  `rusqlite::Error`, which isn't `Clone`/`PartialEq`, so it can't be added to
+  an enum that derives those. Left standalone for now — revisit when Phase 7
+  wires storage into the CLI and needs one error type at the boundary.
 
 ---
 

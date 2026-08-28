@@ -1,4 +1,5 @@
 use core::fmt;
+use std::str::FromStr;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -19,6 +20,14 @@ impl Default for AssetId {
 impl fmt::Display for AssetId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl FromStr for AssetId {
+    type Err = uuid::Error;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Ok(AssetId(Uuid::from_str(value)?))
     }
 }
 
@@ -74,6 +83,14 @@ impl fmt::Display for TransactionId {
     }
 }
 
+impl FromStr for TransactionId {
+    type Err = uuid::Error;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Ok(TransactionId(Uuid::from_str(value)?))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -93,6 +110,12 @@ mod tests {
                 pair[1]
             );
         }
+    }
+
+    #[test]
+    fn asset_id_round_trips_through_its_string_form() {
+        let id = AssetId::new();
+        assert_eq!(id.to_string().parse::<AssetId>().unwrap(), id);
     }
 
     #[test]

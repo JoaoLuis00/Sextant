@@ -21,9 +21,11 @@
 //! - [`domain`] — data only, no logic, no I/O.
 //! - [`engine`] — stateless calculations over domain data.
 //! - [`market_data`] — prices from outside the system, plus the provider port.
+//! - [`app`] — concrete adapters (SQLite, HTTP, CLI) behind feature flags.
 //! - [`ids`] — crate-global newtypes, used by every layer.
 //! - [`errors`] — per-layer errors, composed into one [`Error`].
 
+pub mod app;
 pub mod domain;
 pub mod engine;
 pub mod errors;
@@ -43,6 +45,9 @@ pub use engine::repository::{InMemoryTransactionRepository, Repository};
 pub use errors::{AssetError, DomainError, EngineError, Error, MarketDataError, TransactionError};
 pub use ids::{AssetId, PortfolioId, TransactionId};
 pub use market_data::{MarketData, MarketDataProvider, MockProvider};
+
+#[cfg(feature = "storage")]
+pub use app::storage::{SqliteTransactionRepository, StorageError};
 
 /// Crate-wide result alias, so signatures at the app boundary read as
 /// `fn run() -> sextant::Result<()>`.

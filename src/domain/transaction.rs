@@ -82,6 +82,25 @@ impl Transaction {
         })
     }
 
+    /// Rebuilds a `Transaction` with a caller-supplied id instead of minting
+    /// one, for repositories reloading a row that already has one. Not
+    /// `pub`: only code inside this crate should ever set an id directly.
+    pub(crate) fn from_stored(
+        id: TransactionId,
+        asset_id: AssetId,
+        date: NaiveDate,
+        transaction_type: TransactionType,
+        notes: Option<String>,
+    ) -> Self {
+        Self {
+            id,
+            asset_id,
+            date,
+            transaction_type,
+            notes,
+        }
+    }
+
     pub fn id(&self) -> TransactionId {
         self.id
     }
