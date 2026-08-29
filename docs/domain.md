@@ -454,10 +454,14 @@ Three options:
 All newtypes over `Uuid` — cheap to write, and they stop `AssetId` and
 `TransactionId` from ever being accidentally swapped at a call site.
 
-`TransactionId` specifically should use **UUIDv7**, not the default v4 —
-v7 is time-ordered by construction, which resolves the same-day-ordering
-question with no extra field (sort transactions by `(date, id)` and same-day
-entries come out in creation order for free).
+`TransactionId` uses **UUIDv7** — time-ordered by construction, so sorting
+by `(date, id)` gives same-day creation order for free.
+
+`AssetId` uses **UUIDv5**, derived from `(ticker, exchange)` via
+`AssetId::for_ticker`. Deterministic, not random: the same ticker always
+derives the same id, so nothing needs to persist or look up an
+asset-to-id mapping. `Asset::new` calls it internally — the id isn't a
+constructor parameter.
 
 Each newtype needs `#[derive(Clone, Copy, PartialEq, Eq, Hash)]` — without
 it, these can't be used as `HashMap` keys (`HashMap<AssetId, Position>`) or

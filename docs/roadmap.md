@@ -82,8 +82,10 @@ A phased plan mapping Rust language concepts to milestones in the portfolio proj
 
 **Goal:** implement the trait from Phase 2 against a real external API.
 
-- [x] Implement `YahooFinanceProvider: MarketDataProvider` using `reqwest` + `serde`
-- [x] Deserialize API responses into domain types (or a DTO layer that converts into domain types)
+- [x] Implement `YahooFinanceProvider: MarketDataProvider`, backed by the
+      `yahoo_finance_api` crate (its `blocking` feature) rather than a
+      hand-rolled `reqwest` + `serde` client — see the open decision below
+      for why
 - [x] Handle API failures gracefully (`Result<_, MarketDataError>`, retries/timeouts later)
 - [x] Feature-gate `market_data` in `Cargo.toml`
 
@@ -130,36 +132,35 @@ judgement call worth confirming rather than inheriting silently.
   but snapshot totals still carry no currency tag — mixing denominations would
   silently sum incomparable numbers. Documented on `PortfolioSnapshot`; needs
   an FX layer before it can be relaxed.
-- **`Transaction::from_stored` bypasses id minting.** `Transaction::new` always
-  mints a fresh `TransactionId`, but a repository loading a row needs to
-  restore the id that's already on disk. Added a `pub(crate)`-only
-  constructor rather than a public one, so only code inside the crate
-  (storage) can set an arbitrary id — external callers still go through
-  `new()`. `TransactionType` doesn't need the same treatment since `buy()`/
-  `sell()` re-validate on load anyway.
-- **`StorageError` doesn't widen into the top-level `Error`.** Every other
-  layer's error composes into `Error` via `#[from]`; `StorageError` wraps
-  `rusqlite::Error`, which isn't `Clone`/`PartialEq`, so it can't be added to
-  an enum that derives those. Left standalone for now — revisit when Phase 7
-  wires storage into the CLI and needs one error type at the boundary.
-- **`YahooFinanceProvider` needs a ticker map, not just `AssetId`s.**
-  `MarketDataProvider::price` takes only an `AssetId`, but Yahoo's API only
-  knows ticker symbols. Rather than changing the trait, the provider carries
-  its own `HashMap<AssetId, Ticker>`, set via `.with_ticker(...)` (mirrors
-  `MockProvider::with_price`). An asset with no entry fails with the same
-  `MarketDataError::NotFound` a missing quote would produce — accurate either
-  way, and one fewer error variant to reason about.
-- **Yahoo errors stringify into `MarketDataError::FetchFailed`.** Unlike
-  `StorageError`, `MarketDataError` is a fixed associated type on the trait
-  (not per-implementor), and it already derives `Clone`/`PartialEq`/`Eq` for
-  the rest of the crate — so `reqwest::Error`/`serde_json::Error` get
-  `.to_string()`'d into a `reason: String` field immediately rather than
-  wrapped with `#[from]`.
-- **Yahoo's JSON carries price as `f64`.** Converted to `Decimal` once, right
-  at deserialization, and never handled as a float again — the one place
-  "never `f64` for money" bends, because the wire format isn't ours to
-  choose. `Decimal::try_from(f64)` was checked against `rust_decimal`'s own
-  doctest (`0.1_f64` → `"0.1"`) before relying on it for real prices.
+- **`Transaction::from_stored` bypasses id minting.** `Transaction::new`
+  always mints a fresh id; a repository reloading a row needs to restore
+  the existing one instead. `pub(crate)`-only, so external callers still go
+  through `new()`.
+- **`StorageError` doesn't widen into the top-level `Error`.** It wraps
+  `rusqlite::Error`, which isn't `Clone`/`PartialEq` — can't join an enum
+  that derives those. Revisit at Phase 7 when the CLI needs one error type.
+- **`YahooFinanceProvider` uses the `yahoo_finance_api` crate, not a
+  hand-rolled scraper.** First cut used `reqwest` + `serde` directly against
+  Yahoo's chart endpoint. Switched early, since the crate already handles
+  Yahoo's cookie/crumb auth churn, has a genuinely sync `blocking` mode, and
+  its `decimal` feature skips our own `f64` conversion. Trade-off: a much
+  bigger dependency tree, and less of our own HTTP/parsing code practiced.
+- **`YahooFinanceProvider` carries its own ticker map.**
+  `MarketDataProvider::price` takes only an `AssetId`, but Yahoo needs a
+  ticker string. Provider holds `HashMap<AssetId, Ticker>` via
+  `.with_ticker(...)` (mirrors `MockProvider::with_price`); an unmapped
+  asset just returns `NotFound`.
+- **Yahoo errors stringify into `MarketDataError`.** `YahooError` isn't
+  `Clone`, so it's `.to_string()`'d into `FetchFailed`/`ProviderUnavailable`
+  right away instead of wrapped with `#[from]`.
+- **`AssetId` switched from random (UUIDv7) to deterministic (UUIDv5).**
+  Found while wiring up storage: a random id meant re-creating the same
+  asset next run gave a different id than what old transactions reference.
+  `AssetId::for_ticker(ticker, exchange)` derives the same id every time, no
+  persistence needed. `Asset::new` now calls it internally instead of taking
+  an `id` parameter. Doesn't handle ticker rebrands (a renamed ticker still
+  derives a new id) — deferred, since that's a rare event needing an
+  explicit migration regardless of id scheme.
 
 ---
 

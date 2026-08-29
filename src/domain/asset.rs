@@ -135,13 +135,13 @@ impl Asset {
     /// where three adjacent `Option<String>`s would be trivially easy to
     /// transpose at a call site.
     pub fn new(
-        id: AssetId,
         ticker: Ticker,
         name: String,
         exchange: String,
         currency: Currency,
         asset_type: AssetType,
     ) -> Self {
+        let id = AssetId::for_ticker(ticker.as_str(), &exchange);
         Asset {
             id,
             ticker,
@@ -219,13 +219,17 @@ mod tests {
 
     fn apple() -> Asset {
         Asset::new(
-            AssetId::new(),
             Ticker::new("AAPL"),
             "Apple Inc.".to_string(),
             "NASDAQ".to_string(),
             Currency::Usd,
             AssetType::Stock,
         )
+    }
+
+    #[test]
+    fn id_is_derived_from_ticker_and_exchange() {
+        assert_eq!(apple().id(), AssetId::for_ticker("AAPL", "NASDAQ"));
     }
 
     #[test]

@@ -2,12 +2,23 @@ use core::fmt;
 use std::str::FromStr;
 use uuid::Uuid;
 
+/// Fixed, arbitrary — only needs to stay constant so `for_ticker` derives the
+/// same id on every run. Not a secret; any fixed UUID would do.
+const ASSET_ID_NAMESPACE: Uuid = uuid::uuid!("73d9f46c-e2d4-459f-b1f1-2642f68be42b");
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct AssetId(Uuid);
 
 impl AssetId {
     pub fn new() -> Self {
         AssetId(Uuid::now_v7())
+    }
+
+    /// Deterministic: the same `(ticker, exchange)` always derives the same
+    /// id, so there's nothing to persist or look up to recover it later.
+    pub fn for_ticker(ticker: &str, exchange: &str) -> Self {
+        let name = format!("{ticker}:{exchange}");
+        AssetId(Uuid::new_v5(&ASSET_ID_NAMESPACE, name.as_bytes()))
     }
 }
 
@@ -116,6 +127,22 @@ mod tests {
     fn asset_id_round_trips_through_its_string_form() {
         let id = AssetId::new();
         assert_eq!(id.to_string().parse::<AssetId>().unwrap(), id);
+    }
+
+    #[test]
+    fn for_ticker_is_deterministic() {
+        assert_eq!(
+            AssetId::for_ticker("AAPL", "NASDAQ"),
+            AssetId::for_ticker("AAPL", "NASDAQ")
+        );
+    }
+
+    #[test]
+    fn for_ticker_distinguishes_the_same_ticker_across_exchanges() {
+        assert_ne!(
+            AssetId::for_ticker("BP", "LSE"),
+            AssetId::for_ticker("BP", "NYSE")
+        );
     }
 
     #[test]

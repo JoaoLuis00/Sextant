@@ -15,9 +15,7 @@ use sextant::{
 };
 
 fn main() -> sextant::Result<()> {
-    let apple_id = AssetId::new();
     let apple = Asset::new(
-        apple_id,
         Ticker::new("AAPL"),
         "Apple Inc.".to_string(),
         "NASDAQ".to_string(),
@@ -29,16 +27,16 @@ fn main() -> sextant::Result<()> {
         Some("Consumer Electronics".to_string()),
         Some("US".to_string()),
     );
+    let apple_id = apple.id();
 
-    let vwce_id = AssetId::new();
     let vwce = Asset::new(
-        vwce_id,
         Ticker::new("VWCE"),
         "Vanguard FTSE All-World".to_string(),
         "XETRA".to_string(),
         Currency::Usd,
         AssetType::Etf,
     );
+    let vwce_id = vwce.id();
 
     let mut portfolio = Portfolio::new(PortfolioId::new(), "Retirement");
     for tx in [
