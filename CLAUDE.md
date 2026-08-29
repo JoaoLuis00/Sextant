@@ -24,11 +24,15 @@ cargo run                                 # demo binary until Phase 7 replaces i
 ## Conventions
 
 - Monetary values use `rust_decimal::Decimal` — never `f64`.
-- IDs are newtypes over `Uuid` (`AssetId`, `TransactionId`), using UUIDv7 for
-  time-ordering.
+- IDs are newtypes over `Uuid`: `TransactionId`/`PortfolioId` use UUIDv7
+  (time-ordering); `AssetId` uses UUIDv5, deterministically derived from
+  `(ticker, exchange)` via `AssetId::for_ticker` — the only way to construct
+  one.
 - Domain logic stays pure — no side effects in `impl` methods.
 - No tautological tests (set a value, immediately assert it back) — they
   don't catch anything.
 - Comments only where the why isn't obvious from the code; don't over-comment.
 - Prefer the simplest implementation that works; don't overcomplicate.
-- Don't commit without user review
+- Don't commit without user review.
+- Commit messages: no `Claude-Session:` link, keep the body short (summarize,
+  don't narrate).
