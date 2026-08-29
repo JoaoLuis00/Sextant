@@ -68,7 +68,7 @@ mod tests {
     #[test]
     fn price_fails_loud_for_an_asset_with_no_ticker_mapping() {
         let provider = YahooFinanceProvider::new().unwrap();
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("NOMAP", "TEST");
 
         assert_eq!(
             provider.price(&asset),
@@ -80,7 +80,7 @@ mod tests {
     #[test]
     #[ignore]
     fn price_fetches_a_real_quote_for_a_known_ticker() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let provider = YahooFinanceProvider::new()
             .unwrap()
             .with_ticker(asset, Ticker::new("AAPL"));

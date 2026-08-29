@@ -8,12 +8,12 @@
 use std::collections::HashMap;
 
 use chrono::{NaiveDate, Utc};
+use rust_decimal::{Decimal, dec};
 use sextant::{
-    generate_snapshot, AssetId, EngineError, InMemoryTransactionRepository, MarketData,
-    MarketDataProvider, MockProvider, Portfolio, PortfolioId, Repository, Transaction,
-    TransactionError, TransactionType,
+    AssetId, EngineError, InMemoryTransactionRepository, MarketData, MarketDataProvider,
+    MockProvider, Portfolio, PortfolioId, Repository, Transaction, TransactionError,
+    TransactionType, generate_snapshot,
 };
-use rust_decimal::{dec, Decimal};
 
 fn day(d: u32) -> NaiveDate {
     NaiveDate::from_ymd_opt(2024, 1, d).unwrap()
@@ -48,8 +48,8 @@ fn prices(entries: &[(AssetId, Decimal)]) -> HashMap<AssetId, MarketData> {
 
 #[test]
 fn a_full_portfolio_lifecycle_produces_the_expected_snapshot() {
-    let apple = AssetId::new();
-    let etf = AssetId::new();
+    let apple = AssetId::for_ticker("AAPL", "NASDAQ");
+    let etf = AssetId::for_ticker("VWCE", "XETRA");
 
     let mut portfolio = Portfolio::new(PortfolioId::new(), "Retirement");
     portfolio.apply_transaction(buy(apple, 1, dec!(10), dec!(150)));
@@ -73,8 +73,8 @@ fn a_full_portfolio_lifecycle_produces_the_expected_snapshot() {
 
 #[test]
 fn closing_a_position_keeps_its_realized_pnl_but_drops_its_holding() {
-    let apple = AssetId::new();
-    let etf = AssetId::new();
+    let apple = AssetId::for_ticker("AAPL", "NASDAQ");
+    let etf = AssetId::for_ticker("VWCE", "XETRA");
 
     let mut portfolio = Portfolio::new(PortfolioId::new(), "Retirement");
     portfolio.apply_transaction(buy(apple, 1, dec!(10), dec!(100)));
@@ -92,7 +92,7 @@ fn closing_a_position_keeps_its_realized_pnl_but_drops_its_holding() {
 
 #[test]
 fn a_missing_price_for_a_held_asset_is_reported_loudly() {
-    let apple = AssetId::new();
+    let apple = AssetId::for_ticker("AAPL", "NASDAQ");
     let mut portfolio = Portfolio::new(PortfolioId::new(), "Retirement");
     portfolio.apply_transaction(buy(apple, 1, dec!(10), dec!(150)));
 
@@ -103,7 +103,7 @@ fn a_missing_price_for_a_held_asset_is_reported_loudly() {
 
 #[test]
 fn overselling_an_asset_is_rejected() {
-    let apple = AssetId::new();
+    let apple = AssetId::for_ticker("AAPL", "NASDAQ");
     let mut portfolio = Portfolio::new(PortfolioId::new(), "Retirement");
     portfolio.apply_transaction(buy(apple, 1, dec!(5), dec!(150)));
     portfolio.apply_transaction(sell(apple, 2, dec!(6), dec!(180)));
@@ -111,15 +111,12 @@ fn overselling_an_asset_is_rejected() {
     let market = prices(&[(apple, dec!(210))]);
     let result = generate_snapshot(portfolio.transactions(), &market);
 
-    assert!(matches!(
-        result,
-        Err(EngineError::OversoldAsset { .. })
-    ));
+    assert!(matches!(result, Err(EngineError::OversoldAsset { .. })));
 }
 
 #[test]
 fn invalid_transactions_are_rejected_at_construction() {
-    let apple = AssetId::new();
+    let apple = AssetId::for_ticker("AAPL", "NASDAQ");
 
     assert_eq!(
         Transaction::new(
@@ -146,7 +143,7 @@ fn an_empty_portfolio_snapshots_cleanly() {
 
 #[test]
 fn out_of_order_entry_is_normalized_before_replay() {
-    let apple = AssetId::new();
+    let apple = AssetId::for_ticker("AAPL", "NASDAQ");
 
     // Same trades, entered in different orders. Average-cost replay is
     // order-sensitive, so sorting must make the two agree.
@@ -172,7 +169,7 @@ fn out_of_order_entry_is_normalized_before_replay() {
 
 #[test]
 fn transactions_survive_a_round_trip_through_the_repository() {
-    let apple = AssetId::new();
+    let apple = AssetId::for_ticker("AAPL", "NASDAQ");
     let mut repo = InMemoryTransactionRepository::new();
 
     repo.save(sell(apple, 5, dec!(4), dec!(180))).unwrap();
@@ -189,7 +186,7 @@ fn transactions_survive_a_round_trip_through_the_repository() {
 
 #[test]
 fn a_provider_can_supply_the_prices_the_engine_needs() {
-    let apple = AssetId::new();
+    let apple = AssetId::for_ticker("AAPL", "NASDAQ");
     let provider = MockProvider::new().with_price(apple, dec!(210));
 
     let mut portfolio = Portfolio::new(PortfolioId::new(), "Retirement");

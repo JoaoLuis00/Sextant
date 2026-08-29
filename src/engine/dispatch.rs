@@ -63,13 +63,12 @@ mod tests {
 
     #[test]
     fn static_and_dynamic_engines_agree_on_price() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
 
         let static_engine =
             StaticPortfolioEngine::new(MockProvider::new().with_price(asset, dec!(42)));
-        let dynamic_engine = DynamicPortfolioEngine::new(Box::new(
-            MockProvider::new().with_price(asset, dec!(42)),
-        ));
+        let dynamic_engine =
+            DynamicPortfolioEngine::new(Box::new(MockProvider::new().with_price(asset, dec!(42))));
 
         assert_eq!(static_engine.latest_price(&asset), Ok(dec!(42)));
         assert_eq!(dynamic_engine.latest_price(&asset), Ok(dec!(42)));
@@ -89,7 +88,7 @@ mod tests {
             }
         }
 
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let providers: Vec<Box<dyn MarketDataProvider>> = vec![
             Box::new(MockProvider::new().with_price(asset, dec!(10))),
             Box::new(AlwaysZeroProvider),
@@ -102,7 +101,7 @@ mod tests {
 
     #[test]
     fn a_missing_price_propagates_through_both_dispatch_styles() {
-        let missing = AssetId::new();
+        let missing = AssetId::for_ticker("MISSING", "TEST");
 
         let static_engine = StaticPortfolioEngine::new(MockProvider::new());
         let dynamic_engine = DynamicPortfolioEngine::new(Box::new(MockProvider::new()));

@@ -94,7 +94,7 @@ mod tests {
     #[test]
     fn save_then_find_by_id_round_trips() {
         let mut repo = InMemoryTransactionRepository::new();
-        let tx = tx_on(AssetId::new(), 1);
+        let tx = tx_on(AssetId::for_ticker("AAPL", "NASDAQ"), 1);
 
         let id = repo.save(tx.clone()).unwrap();
 
@@ -110,7 +110,9 @@ mod tests {
     #[test]
     fn delete_removes_the_transaction() {
         let mut repo = InMemoryTransactionRepository::new();
-        let id = repo.save(tx_on(AssetId::new(), 1)).unwrap();
+        let id = repo
+            .save(tx_on(AssetId::for_ticker("AAPL", "NASDAQ"), 1))
+            .unwrap();
 
         repo.delete(&id).unwrap();
 
@@ -127,7 +129,7 @@ mod tests {
     #[test]
     fn saving_the_same_id_twice_updates_rather_than_duplicates() {
         let mut repo = InMemoryTransactionRepository::new();
-        let tx = tx_on(AssetId::new(), 1);
+        let tx = tx_on(AssetId::for_ticker("AAPL", "NASDAQ"), 1);
         repo.save(tx.clone()).unwrap();
         repo.save(tx).unwrap();
 
@@ -137,7 +139,7 @@ mod tests {
     #[test]
     fn find_all_returns_transactions_in_replay_order() {
         let mut repo = InMemoryTransactionRepository::new();
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let later = tx_on(asset, 20);
         let earlier = tx_on(asset, 2);
 

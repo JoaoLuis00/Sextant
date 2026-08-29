@@ -49,7 +49,7 @@ pub use market_data::{MarketData, MarketDataProvider, MockProvider};
 #[cfg(feature = "market_data")]
 pub use app::market_data::YahooFinanceProvider;
 #[cfg(feature = "storage")]
-pub use app::storage::{SqliteTransactionRepository, StorageError};
+pub use app::storage::{SqliteAssetRepository, SqliteTransactionRepository, StorageError};
 
 /// Crate-wide result alias, so signatures at the app boundary read as
 /// `fn run() -> sextant::Result<()>`.

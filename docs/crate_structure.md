@@ -36,7 +36,7 @@ sextant/
     │
     ├── app.rs                  # pub mod storage, market_data (both feature-gated); cli lands later
     ├── app/
-    │   ├── storage.rs          # SqliteTransactionRepository, behind the `storage` feature
+    │   ├── storage.rs          # SqliteTransactionRepository + SqliteAssetRepository, behind `storage`
     │   ├── market_data.rs      # YahooFinanceProvider, behind the `market_data` feature
     │   └── cli.rs              # PLANNED — Phase 7
     │

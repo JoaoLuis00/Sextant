@@ -10,21 +10,13 @@ const ASSET_ID_NAMESPACE: Uuid = uuid::uuid!("73d9f46c-e2d4-459f-b1f1-2642f68be4
 pub struct AssetId(Uuid);
 
 impl AssetId {
-    pub fn new() -> Self {
-        AssetId(Uuid::now_v7())
-    }
-
     /// Deterministic: the same `(ticker, exchange)` always derives the same
     /// id, so there's nothing to persist or look up to recover it later.
+    /// The only way to construct an `AssetId` — every real asset should
+    /// trace back to a `(ticker, exchange)` pair, never an arbitrary one.
     pub fn for_ticker(ticker: &str, exchange: &str) -> Self {
         let name = format!("{ticker}:{exchange}");
         AssetId(Uuid::new_v5(&ASSET_ID_NAMESPACE, name.as_bytes()))
-    }
-}
-
-impl Default for AssetId {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -125,7 +117,7 @@ mod tests {
 
     #[test]
     fn asset_id_round_trips_through_its_string_form() {
-        let id = AssetId::new();
+        let id = AssetId::for_ticker("AAPL", "NASDAQ");
         assert_eq!(id.to_string().parse::<AssetId>().unwrap(), id);
     }
 
@@ -150,7 +142,7 @@ mod tests {
         // Compile-time guarantee: an AssetId can never be passed where a
         // TransactionId is expected. Nothing to assert at runtime — the fact
         // that this file compiles with both newtypes is the test.
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let transaction = TransactionId::new();
         assert_ne!(asset.to_string(), transaction.to_string());
     }

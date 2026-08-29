@@ -136,13 +136,23 @@ mod tests {
 
     #[test]
     fn cost_basis_is_derived_from_quantity_and_average_cost() {
-        let position = Position::new(AssetId::new(), dec!(10), dec!(150), Decimal::ZERO);
+        let position = Position::new(
+            AssetId::for_ticker("AAPL", "NASDAQ"),
+            dec!(10),
+            dec!(150),
+            Decimal::ZERO,
+        );
         assert_eq!(position.cost_basis(), dec!(1500));
     }
 
     #[test]
     fn valuation_derives_market_value_and_unrealized_pnl() {
-        let position = Position::new(AssetId::new(), dec!(10), dec!(150), Decimal::ZERO);
+        let position = Position::new(
+            AssetId::for_ticker("AAPL", "NASDAQ"),
+            dec!(10),
+            dec!(150),
+            Decimal::ZERO,
+        );
         let valuation = PositionValuation::new(position, dec!(210));
 
         assert_eq!(valuation.market_value(), dec!(2100));
@@ -151,7 +161,12 @@ mod tests {
 
     #[test]
     fn unrealized_pnl_is_negative_when_price_falls_below_cost() {
-        let position = Position::new(AssetId::new(), dec!(10), dec!(150), Decimal::ZERO);
+        let position = Position::new(
+            AssetId::for_ticker("AAPL", "NASDAQ"),
+            dec!(10),
+            dec!(150),
+            Decimal::ZERO,
+        );
         let valuation = PositionValuation::new(position, dec!(120));
 
         assert_eq!(valuation.unrealized_pnl(), dec!(-300));
@@ -159,7 +174,12 @@ mod tests {
 
     #[test]
     fn a_zero_quantity_position_is_not_open() {
-        let closed = Position::new(AssetId::new(), Decimal::ZERO, Decimal::ZERO, dec!(500));
+        let closed = Position::new(
+            AssetId::for_ticker("AAPL", "NASDAQ"),
+            Decimal::ZERO,
+            Decimal::ZERO,
+            dec!(500),
+        );
         assert!(!closed.is_open());
         // ...but its realized P&L history survives the exit.
         assert_eq!(closed.realized_pnl(), dec!(500));

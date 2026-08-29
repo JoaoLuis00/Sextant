@@ -161,6 +161,23 @@ judgement call worth confirming rather than inheriting silently.
   an `id` parameter. Doesn't handle ticker rebrands (a renamed ticker still
   derives a new id) — deferred, since that's a rare event needing an
   explicit migration regardless of id scheme.
+- **`AssetId::new()` (random UUIDv7) removed entirely.** Once `for_ticker`
+  existed, keeping a random constructor around contradicted the invariant
+  it was for — every real `AssetId` should trace back to a `(ticker,
+  exchange)` pair, not be arbitrary. `for_ticker` is now the only way to
+  construct one; ~60 test call sites that used `new()` purely for "some
+  distinct id" switched to `for_ticker` with placeholder or real-looking
+  ticker/exchange literals.
+- **Added `SqliteAssetRepository`, ahead of Phase 7.** `Asset` was never
+  persisted — only `Transaction` was — so a CLI had no way to show "AAPL"
+  instead of a raw `AssetId` after a fresh process start. Deterministic ids
+  solve *recovering the id*, but not storing the asset's other fields
+  (name, currency, sector, ...) across runs. Mirrors
+  `SqliteTransactionRepository` exactly (same upsert idiom, same
+  `TEXT`-columns approach); no `from_stored`-style bypass needed since
+  `Asset::new` already re-derives the same id from `(ticker, exchange)` on
+  every reconstruction, so a stored row's `id` column is only ever used for
+  the `WHERE` lookup, never parsed back into a value.
 
 ---
 
@@ -170,5 +187,20 @@ judgement call worth confirming rather than inheriting silently.
 - [ ] Async programming (revisit storage/market data with `sqlx`/async `reqwest` once comfortable)
 - [ ] Web frontend
 - [ ] Mobile-friendly interface
+- [ ] Ticker search/autocomplete for a future UI — type "AAPL", get suggestions
+      across exchanges ("AAPL.US", "AAPL.DE", ...). `yahoo_finance_api` already
+      has `search_ticker`/`search_ticker_opt` for this; add it as its own port
+      (e.g. a `TickerSearchProvider` trait in `market_data.rs`, separate from
+      `MarketDataProvider` — searching for a ticker and pricing an asset you
+      already have an id for are different concerns). Needs a decision on
+      exchange representation: this project stores full names ("NASDAQ",
+      "XETRA") in `Asset.exchange`, while Yahoo's own symbols use suffixes
+      (bare `AAPL`, `SAP.DE`) — normalize one way or adopt Yahoo's codes as
+      canonical, rather than maintaining both conventions. Note: the CLI's
+      `resolve_or_register_asset` ambiguity handling (`AmbiguousTicker`,
+      `--exchange` disambiguation — see `PHASE_7_CLI_PLAN.md`) exists to
+      handle blind typing from a terminal; a UI's autocomplete resolves
+      `(ticker, exchange)` before ever calling into that logic, so it
+      wouldn't hit that fallback path at all.
 - [ ] Research platform aggregation (filings, biotech pipelines, catalysts)
 - [ ] Charting

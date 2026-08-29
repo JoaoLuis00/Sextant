@@ -179,14 +179,14 @@ mod tests {
             price: dec!(100),
         };
         assert_eq!(
-            Transaction::new(AssetId::new(), date(), bad, None),
+            Transaction::new(AssetId::for_ticker("AAPL", "NASDAQ"), date(), bad, None),
             Err(TransactionError::NonPositiveQuantity)
         );
     }
 
     #[test]
     fn new_builds_a_valid_transaction() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let tx = Transaction::new(
             asset,
             date(),
@@ -202,7 +202,7 @@ mod tests {
 
     #[test]
     fn same_day_transactions_order_by_creation_time() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         // All on the same date, minted back to back — so the date component of
         // the sort key ties and the UUIDv7 id is what actually breaks it.
         let transactions: Vec<Transaction> = (0..100)
@@ -224,7 +224,7 @@ mod tests {
 
     #[test]
     fn sorting_by_ordering_key_recovers_creation_order() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let original: Vec<Transaction> = (0..50)
             .map(|_| {
                 Transaction::new(

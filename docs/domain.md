@@ -458,10 +458,12 @@ All newtypes over `Uuid` — cheap to write, and they stop `AssetId` and
 by `(date, id)` gives same-day creation order for free.
 
 `AssetId` uses **UUIDv5**, derived from `(ticker, exchange)` via
-`AssetId::for_ticker`. Deterministic, not random: the same ticker always
-derives the same id, so nothing needs to persist or look up an
-asset-to-id mapping. `Asset::new` calls it internally — the id isn't a
-constructor parameter.
+`AssetId::for_ticker` — the only way to construct one. Deterministic, not
+random: the same ticker always derives the same id, so *recovering the id*
+never needs a lookup. `Asset::new` calls it internally — the id isn't a
+constructor parameter. (Asset's other fields — name, currency, sector, etc.
+— still need `SqliteAssetRepository` to persist across runs; only the id
+itself is free.)
 
 Each newtype needs `#[derive(Clone, Copy, PartialEq, Eq, Hash)]` — without
 it, these can't be used as `HashMap` keys (`HashMap<AssetId, Position>`) or

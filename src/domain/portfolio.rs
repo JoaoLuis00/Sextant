@@ -106,7 +106,7 @@ mod tests {
     #[test]
     fn apply_transaction_appends_to_the_ledger() {
         let mut portfolio = Portfolio::new(PortfolioId::new(), "Retirement");
-        let tx = buy_on(AssetId::new(), day(1));
+        let tx = buy_on(AssetId::for_ticker("AAPL", "NASDAQ"), day(1));
 
         portfolio.apply_transaction(tx.clone());
 
@@ -116,7 +116,7 @@ mod tests {
     #[test]
     fn apply_transaction_preserves_insertion_order() {
         let mut portfolio = Portfolio::new(PortfolioId::new(), "Retirement");
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let first = buy_on(asset, day(1));
         let second = buy_on(asset, day(2));
 
@@ -129,7 +129,7 @@ mod tests {
     #[test]
     fn sort_transactions_puts_a_backfilled_trade_back_in_date_order() {
         let mut portfolio = Portfolio::new(PortfolioId::new(), "Retirement");
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let later = buy_on(asset, day(20));
         let backfilled = buy_on(asset, day(2));
 

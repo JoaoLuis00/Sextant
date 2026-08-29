@@ -95,7 +95,12 @@ fn build_position(
         }
     }
 
-    Ok(Position::new(asset_id, quantity, average_cost, realized_pnl))
+    Ok(Position::new(
+        asset_id,
+        quantity,
+        average_cost,
+        realized_pnl,
+    ))
 }
 
 /// Values a transaction history against current prices.
@@ -194,7 +199,7 @@ mod tests {
 
     #[test]
     fn single_buy_sets_average_cost_to_the_purchase_price() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let holdings = build_holdings(&[buy(asset, 1, dec!(10), dec!(150))]).unwrap();
         let position = &holdings[&asset];
 
@@ -205,7 +210,7 @@ mod tests {
 
     #[test]
     fn repeated_buys_produce_a_weighted_average_cost() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let holdings = build_holdings(&[
             buy(asset, 1, dec!(10), dec!(100)),
             buy(asset, 2, dec!(30), dec!(200)),
@@ -221,7 +226,7 @@ mod tests {
 
     #[test]
     fn a_sell_does_not_change_average_cost_of_the_remainder() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let holdings = build_holdings(&[
             buy(asset, 1, dec!(10), dec!(100)),
             sell(asset, 2, dec!(4), dec!(180)),
@@ -236,7 +241,7 @@ mod tests {
 
     #[test]
     fn a_full_exit_resets_average_cost_and_starts_a_fresh_cycle() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let holdings = build_holdings(&[
             buy(asset, 1, dec!(10), dec!(100)),
             sell(asset, 2, dec!(10), dec!(180)),
@@ -255,7 +260,7 @@ mod tests {
 
     #[test]
     fn realized_pnl_is_gain_over_average_cost_times_quantity_sold() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let holdings = build_holdings(&[
             buy(asset, 1, dec!(10), dec!(100)),
             sell(asset, 2, dec!(4), dec!(180)),
@@ -268,7 +273,7 @@ mod tests {
 
     #[test]
     fn realized_pnl_can_be_negative() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let holdings = build_holdings(&[
             buy(asset, 1, dec!(10), dec!(100)),
             sell(asset, 2, dec!(10), dec!(60)),
@@ -280,7 +285,7 @@ mod tests {
 
     #[test]
     fn realized_pnl_accumulates_across_close_and_reopen_cycles() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let holdings = build_holdings(&[
             buy(asset, 1, dec!(10), dec!(100)),
             sell(asset, 2, dec!(10), dec!(150)), // +500
@@ -298,7 +303,7 @@ mod tests {
 
     #[test]
     fn selling_more_than_held_is_rejected() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let result = build_holdings(&[
             buy(asset, 1, dec!(5), dec!(100)),
             sell(asset, 2, dec!(10), dec!(150)),
@@ -316,21 +321,18 @@ mod tests {
 
     #[test]
     fn selling_with_nothing_held_is_rejected() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let result = build_holdings(&[sell(asset, 1, dec!(1), dec!(100))]);
 
-        assert!(matches!(
-            result,
-            Err(EngineError::OversoldAsset { .. })
-        ));
+        assert!(matches!(result, Err(EngineError::OversoldAsset { .. })));
     }
 
     // ---- holdings aggregation ----
 
     #[test]
     fn holdings_are_grouped_per_asset() {
-        let apple = AssetId::new();
-        let msft = AssetId::new();
+        let apple = AssetId::for_ticker("AAPL", "NASDAQ");
+        let msft = AssetId::for_ticker("MSFT", "NASDAQ");
         let holdings = build_holdings(&[
             buy(apple, 1, dec!(10), dec!(100)),
             buy(msft, 1, dec!(5), dec!(200)),
@@ -345,7 +347,7 @@ mod tests {
 
     #[test]
     fn build_holdings_retains_fully_closed_assets() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let holdings = build_holdings(&[
             buy(asset, 1, dec!(10), dec!(100)),
             sell(asset, 2, dec!(10), dec!(150)),
@@ -368,9 +370,12 @@ mod tests {
 
     #[test]
     fn snapshot_sums_totals_across_open_positions() {
-        let apple = AssetId::new();
-        let msft = AssetId::new();
-        let transactions = [buy(apple, 1, dec!(10), dec!(100)), buy(msft, 1, dec!(5), dec!(200))];
+        let apple = AssetId::for_ticker("AAPL", "NASDAQ");
+        let msft = AssetId::for_ticker("MSFT", "NASDAQ");
+        let transactions = [
+            buy(apple, 1, dec!(10), dec!(100)),
+            buy(msft, 1, dec!(5), dec!(200)),
+        ];
         let market = prices(&[(apple, dec!(150)), (msft, dec!(180))]);
 
         let snapshot = generate_snapshot(&transactions, &market).unwrap();
@@ -387,8 +392,8 @@ mod tests {
 
     #[test]
     fn a_fully_exited_asset_is_dropped_from_positions() {
-        let apple = AssetId::new();
-        let msft = AssetId::new();
+        let apple = AssetId::for_ticker("AAPL", "NASDAQ");
+        let msft = AssetId::for_ticker("MSFT", "NASDAQ");
         let transactions = [
             buy(apple, 1, dec!(10), dec!(100)),
             sell(apple, 2, dec!(10), dec!(150)),
@@ -404,8 +409,8 @@ mod tests {
 
     #[test]
     fn realized_pnl_of_a_closed_asset_survives_in_the_totals() {
-        let apple = AssetId::new();
-        let msft = AssetId::new();
+        let apple = AssetId::for_ticker("AAPL", "NASDAQ");
+        let msft = AssetId::for_ticker("MSFT", "NASDAQ");
         let transactions = [
             buy(apple, 1, dec!(10), dec!(100)),
             sell(apple, 2, dec!(10), dec!(150)), // +500 realized, then closed
@@ -416,7 +421,12 @@ mod tests {
         let snapshot = generate_snapshot(&transactions, &market).unwrap();
 
         // Apple has no line in `positions`, but its P&L is still counted.
-        assert!(snapshot.positions().iter().all(|p| p.position().asset_id() != apple));
+        assert!(
+            snapshot
+                .positions()
+                .iter()
+                .all(|p| p.position().asset_id() != apple)
+        );
         assert_eq!(snapshot.total_realized_pnl(), dec!(500));
         assert_eq!(snapshot.total_unrealized_pnl(), dec!(100)); // 5*220 - 1000
         assert_eq!(snapshot.total_pnl(), dec!(600));
@@ -424,7 +434,7 @@ mod tests {
 
     #[test]
     fn a_closed_asset_does_not_require_market_data() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let transactions = [
             buy(asset, 1, dec!(10), dec!(100)),
             sell(asset, 2, dec!(10), dec!(150)),
@@ -440,7 +450,7 @@ mod tests {
 
     #[test]
     fn a_held_asset_without_market_data_fails_loud() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let transactions = [buy(asset, 1, dec!(1), dec!(1))];
 
         let result = generate_snapshot(&transactions, &HashMap::new());
@@ -461,8 +471,8 @@ mod tests {
 
     #[test]
     fn positions_come_out_in_a_stable_order() {
-        let a = AssetId::new();
-        let b = AssetId::new();
+        let a = AssetId::for_ticker("A", "TEST");
+        let b = AssetId::for_ticker("B", "TEST");
         let transactions = [buy(a, 1, dec!(1), dec!(10)), buy(b, 1, dec!(1), dec!(10))];
         let market = prices(&[(a, dec!(10)), (b, dec!(10))]);
 
@@ -471,15 +481,22 @@ mod tests {
         let second = generate_snapshot(&transactions, &market).unwrap();
 
         let ids = |s: &PortfolioSnapshot| -> Vec<AssetId> {
-            s.positions().iter().map(|p| p.position().asset_id()).collect()
+            s.positions()
+                .iter()
+                .map(|p| p.position().asset_id())
+                .collect()
         };
         assert_eq!(ids(&first), ids(&second));
-        assert_eq!(ids(&first), { let mut v = vec![a, b]; v.sort(); v });
+        assert_eq!(ids(&first), {
+            let mut v = vec![a, b];
+            v.sort();
+            v
+        });
     }
 
     #[test]
     fn the_engine_is_deterministic_for_the_same_inputs() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let transactions = [
             buy(asset, 1, dec!(10), dec!(100)),
             sell(asset, 2, dec!(3), dec!(140)),

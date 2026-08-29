@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn returns_configured_price_for_known_asset() {
-        let asset = AssetId::new();
+        let asset = AssetId::for_ticker("AAPL", "NASDAQ");
         let provider = MockProvider::new().with_price(asset, dec!(20.0));
 
         assert_eq!(provider.price(&asset), Ok(dec!(20)));
@@ -91,7 +91,7 @@ mod tests {
 
     #[test]
     fn returns_not_found_for_unknown_asset() {
-        let missing_asset = AssetId::new();
+        let missing_asset = AssetId::for_ticker("MISSING", "TEST");
         let provider = MockProvider::new();
 
         assert_eq!(
