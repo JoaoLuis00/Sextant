@@ -17,6 +17,8 @@ pub enum MarketDataError {
     NotFound(AssetId),
     #[error("failed to fetch market data for asset {asset_id}: {reason}")]
     FetchFailed { asset_id: AssetId, reason: String },
+    #[error("market data provider unavailable: {0}")]
+    ProviderUnavailable(String),
 }
 
 /// One price point for one asset. The Engine needs prices for *every* held

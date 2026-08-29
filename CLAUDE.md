@@ -17,7 +17,7 @@ which language concepts it's meant to exercise.
 
 ```
 cargo test                                # unit tests inline, integration tests in tests/
-cargo test --features storage,market_data # also exercises SQLite and Yahoo Finance parsing
+cargo test --features storage,market_data # also exercises SQLite and Yahoo Finance quote fetching
 cargo run                                 # demo binary until Phase 7 replaces it with a real CLI
 ```
 
@@ -31,3 +31,4 @@ cargo run                                 # demo binary until Phase 7 replaces i
   don't catch anything.
 - Comments only where the why isn't obvious from the code; don't over-comment.
 - Prefer the simplest implementation that works; don't overcomplicate.
+- Don't commit without user review

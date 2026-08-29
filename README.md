@@ -23,7 +23,7 @@ stored. That is what keeps every figure reproducible from history alone.
 
 ```
 cargo test                                  # unit tests inline, integration tests in tests/
-cargo test --features storage,market_data   # also exercises SQLite and Yahoo Finance parsing
+cargo test --features storage,market_data   # also exercises SQLite and Yahoo Finance quote fetching
 cargo run                                   # demo binary until Phase 7 replaces it with a real CLI
 ```
 
