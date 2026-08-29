@@ -82,9 +82,9 @@ impl Transaction {
         })
     }
 
-    /// Rebuilds a `Transaction` with a caller-supplied id instead of minting
-    /// one, for repositories reloading a row that already has one. Not
-    /// `pub`: only code inside this crate should ever set an id directly.
+    /// Rebuilds a `Transaction` with an existing id, for repositories
+    /// reloading a stored row. `pub(crate)` so external callers still can't
+    /// set an arbitrary id.
     pub(crate) fn from_stored(
         id: TransactionId,
         asset_id: AssetId,

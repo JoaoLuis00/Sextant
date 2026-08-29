@@ -1,8 +1,7 @@
 //! SQLite-backed `Repository<Transaction>`.
 //!
-//! `domain`/`engine` stay unaware SQL exists — this is the only module that
-//! imports `rusqlite`. Decimals and dates are stored as `TEXT`, not `REAL`,
-//! to keep `rust_decimal` precision exact through a round trip.
+//! Decimals and dates are stored as `TEXT`, not `REAL`, to keep
+//! `rust_decimal` precision exact through a round trip.
 
 use std::str::FromStr;
 
@@ -137,9 +136,7 @@ impl Repository<Transaction> for SqliteTransactionRepository {
         }
     }
 
-    /// Ordered by `(date, id)`, matching `InMemoryTransactionRepository` —
-    /// UUIDv7's text form sorts the same as its creation time, so this needs
-    /// no separate tie-breaker logic.
+    /// Ordered by `(date, id)`, matching `InMemoryTransactionRepository`.
     fn find_all(&self) -> Result<Vec<Transaction>, Self::Error> {
         let mut stmt = self.conn.prepare(
             "SELECT id, asset_id, date, kind, quantity, price, notes
